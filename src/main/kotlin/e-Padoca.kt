@@ -36,6 +36,12 @@ fun main() {
     var opcaoCategoria: String
     while (true) {
         opcaoCategoria = escolhaMenuPrincipal(categorias)
+        if (opcaoCategoria == FINALIZAR && carrinho.isEmpty()) {
+            print("Deseja mesmo cancelar compra? (SIM para cancelar)")
+            if (readln().uppercase() == "SIM") {
+                opcaoCategoria = CANCELAR
+            }
+        }
         if (opcaoCategoria == FINALIZAR || opcaoCategoria == CANCELAR) {
             break
         }
