@@ -1,3 +1,10 @@
+const val CATEGORIA = 0
+const val PRODUTO = 1
+const val PRECO = 2
+
+const val QUANTIDADE = 3
+const val TOTAL = 4
+
 val cardapio = listOf(
     // Categoria: Pães
     listOf("Pães",      "Carioquinha",      "0,60"),
@@ -24,19 +31,66 @@ const val FINALIZAR = "Finalizar compra"
 const val CANCELAR = "Cancelar compra"
 
 fun main() {
+    val carrinho = mutableListOf<List<String>>()
     val categorias = calculateCategorias()
-    var opcaoCategoria = ""
-    while (opcaoCategoria != FINALIZAR && opcaoCategoria != CANCELAR) {
+    var opcaoCategoria: String
+    while (true) {
         opcaoCategoria = escolhaMenuPrincipal(categorias)
-        val itens = cardapio.filter { item -> item[0] == opcaoCategoria }
+        if (opcaoCategoria == FINALIZAR || opcaoCategoria == CANCELAR) {
+            break
+        }
+        val itens = cardapio.filter { item -> item[CATEGORIA] == opcaoCategoria }
         val opcaoItem = escolhaMenuCategoria(itens)
-        println("Opção escolhida: $opcaoCategoria - $opcaoItem")
+        val item = itens.filter { item -> item[PRODUTO] == opcaoItem }.first()
+        adicionarItem(item, carrinho)
         println()
     }
-    println("Opção: $opcaoCategoria")
+    if (opcaoCategoria == CANCELAR) {
+        println("Compra cancelada.")
+    } else {
+        mostrarCarrinho(carrinho)
+    }
 }
 
-fun escolhaMenuCategoria(itens: List<List<String>>): Any {
+fun mostrarCarrinho(carrinho: MutableList<List<String>>) {
+    var valorTotal = 0.0
+    println()
+    println("======================= Comanda E-padoca ========================")
+    println("Item       Produto         Qtd                Valor         Total")
+    for ((i, item) in carrinho.withIndex()) {
+        val nome = item[PRODUTO]
+        val quantidade = item[QUANTIDADE]
+        val preco = item[PRECO]
+        val totalItem = item[TOTAL]
+        valorTotal += totalItem.replace(",", ".").toDouble()
+
+        val nomeQuant = separarItensComPontos(nome, quantidade, 19)
+        val frente = separarItensComPontos(i.toString(), nomeQuant, 30)
+        val traseira = separarItensComPontos("R$ " + preco, "R$ " + totalItem, 21)
+        val linha = separarItensComPontos(frente, traseira, 65)
+        println(linha)
+    }
+    println("=================================================================")
+    println(separarItensComPontos("Total ", " R$ %.2f".format(valorTotal), 65))
+    println("======================= VOLTE SEMPRE ============================")
+}
+
+private fun adicionarItem(item: List<String>, carrinho: MutableList<List<String>>) {
+    val valorUnitario = item[PRECO].replace(",", ".").toDouble()
+    println("Opção escolhida: ${item[CATEGORIA]} - ${item[PRODUTO]} - Valor unitário: ${item[PRECO]}")
+    print("Quantidade desejada (digite 0 para cancelar): ")
+    val quantidade = readln().toIntOrNull() ?: 0
+    if (quantidade > 0) {
+        val itemCarrinho = item.toMutableList()
+        itemCarrinho.add(quantidade.toString())
+        itemCarrinho.add("%.2f".format(quantidade * valorUnitario).replace(".", ","))
+        carrinho.add(itemCarrinho)
+        println("Adicionados $quantidade ${item[PRODUTO]}(s) ao carrinho.")
+        println()
+    }
+}
+
+fun escolhaMenuCategoria(itens: List<List<String>>): String {
     val categoria = itens[0][0]
     var opcao = ""
     var opcaoInvalida = true
@@ -54,7 +108,6 @@ fun escolhaMenuCategoria(itens: List<List<String>>): Any {
         opcao = readln().trim().uppercase()
         if (opcao != "X" && opcao.toIntOrNull() !in 1..itens.size) {
             println("$opcao <== Opção Inválida")
-            println("============================================")
             println()
         } else {
             opcaoInvalida = false
@@ -78,6 +131,7 @@ fun escolhaMenuPrincipal(categorias: List<String>): String {
     var opcao = ""
     var opcaoInvalida = true
     while (opcaoInvalida) {
+        println("============================================")
         println("Menu Principal")
         println()
         for ((i, categoria) in categorias.withIndex()) {
