@@ -27,6 +27,8 @@ val cardapio = listOf(
     listOf("Bebidas",   "Refrigerante",     "1,80")
 )
 
+val cupons = listOf("5PADOCA", "10PADOCA", "5OFF")
+
 const val FINALIZAR = "Finalizar compra"
 const val CANCELAR = "Cancelar compra"
 
@@ -54,11 +56,25 @@ fun main() {
     if (opcaoCategoria == CANCELAR) {
         println("Compra cancelada.")
     } else {
-        mostrarCarrinho(carrinho)
+        val cupom = pegaCupom(cupons)
+        mostrarCarrinho(carrinho, cupom)
     }
 }
 
-fun mostrarCarrinho(carrinho: MutableList<List<String>>) {
+fun pegaCupom(cupons: List<String>): String {
+    var cupom = ""
+    while (true) {
+        print("Digite o código do cupom que deseje utilizar ou <Enter> para continuar: ")
+        cupom = readln().uppercase()
+        if (cupom == "" || cupons.contains(cupom)) {
+            break
+        }
+        println("$cupom <= Cupom inválido.")
+    }
+    return cupom
+}
+
+fun mostrarCarrinho(carrinho: MutableList<List<String>>, cupom: String) {
     var valorTotal = 0.0
     println()
     println("======================= Comanda E-padoca ========================")
@@ -77,7 +93,20 @@ fun mostrarCarrinho(carrinho: MutableList<List<String>>) {
         println(linha)
     }
     println("=================================================================")
-    println(separarItensComPontos("Total ", " R$ %.2f".format(valorTotal), 65))
+    val desconto = when (cupom) {
+        "5PADOCA" -> valorTotal * 0.05
+        "10PADOCA" -> valorTotal * 0.10
+        "5OFF" -> 5.00
+        else -> 0.0
+    }
+    if (cupom != "") {
+        val linhaDesconto = separarItensComPontos(
+            "Cupom aplicado: $cupom",
+            "Desconto: R$ %.2f".format(desconto),
+            65)
+        println(linhaDesconto)
+    }
+    println(separarItensComPontos("Total ", " R$ %.2f".format(valorTotal - desconto), 65))
     println("======================= VOLTE SEMPRE ============================")
 }
 
